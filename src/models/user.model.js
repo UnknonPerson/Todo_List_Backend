@@ -1,4 +1,7 @@
 import mongoose, { Schema } from "mongoose";
+import jsonwebtoken , {sign} from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 const userSchema = new Schema(
     {
@@ -46,5 +49,41 @@ const userSchema = new Schema(
         timestamps: true
     }
 )
+
+
+userSchema.method.generateRefreshToken = () => {
+
+    return jsonwebtoken.sign(
+        {_id : this.id},
+        process.env.REFRESH_TOKEN_SECRET,
+        {expiresIn: process.env.REFRESH_TOKEN_EXPIRY}
+    )
+}
+
+userSchema.method.generateAccessToken = () => {
+    return jsonwebtoken.sign(
+        {
+            _id : this.id,
+            email : this.email,
+            username : this.username
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {expiresIn : process.env.ACCESS_TOKEN_EXPIRY}
+    )
+}
+ 
+userSchema.method.generateTemporaryToken = () => {
+    const unHashedToken = crypto.randomBytes(20).toString("hex")
+
+    const hashedTonken = crypto
+        .createHash("sha256")
+        .update(unHashedToken)
+        .digest("hex")
+
+    const tokenExpiry = Date.now() + (20*60*1000) //20 min
+
+    return {unHashedToken , hashedTonken, tokenExpiry}
+}
+
 
 export const User = mongoose.model("User",userSchema)
