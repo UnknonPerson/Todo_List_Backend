@@ -7,7 +7,7 @@ const healthCheack = asyncHandler(
     }
 )
 
-export {healthCheack} ;
+export {healthCheack};
 
 
 

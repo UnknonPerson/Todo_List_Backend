@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import jsonwebtoken , {sign} from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
@@ -72,17 +72,29 @@ userSchema.method.generateAccessToken = () => {
     )
 }
  
-userSchema.method.generateTemporaryToken = () => {
+// userSchema.method.generateTemporaryToken = function() {
+//     const unHashedToken = crypto.randomBytes(20).toString("hex");
+
+//     const hashedTonken = crypto
+//         .createHash("sha256")
+//         .update(unHashedToken)
+//         .digest("hex")
+
+//     const tokenExpiry = Date.now() + (20*60*1000) //20 min
+
+//     return {unHashedToken , hashedTonken, tokenExpiry}
+// }
+
+userSchema.methods.generateTemporaryToken = function() {
     const unHashedToken = crypto.randomBytes(20).toString("hex")
 
-    const hashedTonken = crypto
+    const hashedToken = crypto
         .createHash("sha256")
         .update(unHashedToken)
         .digest("hex")
 
-    const tokenExpiry = Date.now() + (20*60*1000) //20 min
-
-    return {unHashedToken , hashedTonken, tokenExpiry}
+    const tokenExpiry = Date.now() + (20*60*1000) //20 mins
+    return {unHashedToken, hashedToken, tokenExpiry}
 }
 
 
