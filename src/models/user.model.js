@@ -50,40 +50,36 @@ const userSchema = new Schema(
     }
 )
 
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return null;
 
-userSchema.method.generateRefreshToken = () => {
+  this.password = await bcrypt.hash(this.password, 10);
+});
 
-    return jsonwebtoken.sign(
-        {_id : this.id},
-        process.env.REFRESH_TOKEN_SECRET,
-        {expiresIn: process.env.REFRESH_TOKEN_EXPIRY}
-    )
+userSchema.methods.isPasswordCorrect = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password)
 }
 
-userSchema.method.generateAccessToken = () => {
+userSchema.methods.generateRefreshToken = function () {
+    return jsonwebtoken.sign(
+        { _id: this._id },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+    );
+};
+
+userSchema.methods.generateAccessToken = function () {
     return jsonwebtoken.sign(
         {
-            _id : this.id,
-            email : this.email,
-            username : this.username
+            _id: this._id,
+            email: this.email,
+            username: this.username
         },
         process.env.ACCESS_TOKEN_SECRET,
-        {expiresIn : process.env.ACCESS_TOKEN_EXPIRY}
-    )
-}
+        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+    );
+};
  
-// userSchema.method.generateTemporaryToken = function() {
-//     const unHashedToken = crypto.randomBytes(20).toString("hex");
-
-//     const hashedTonken = crypto
-//         .createHash("sha256")
-//         .update(unHashedToken)
-//         .digest("hex")
-
-//     const tokenExpiry = Date.now() + (20*60*1000) //20 min
-
-//     return {unHashedToken , hashedTonken, tokenExpiry}
-// }
 
 userSchema.methods.generateTemporaryToken = function() {
     const unHashedToken = crypto.randomBytes(20).toString("hex")
